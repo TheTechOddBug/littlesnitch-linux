@@ -119,6 +119,6 @@ fn _demo_print_page(page: &NameBlocklistPage) {
         let length = (page.string_offset[i + 1] & 0x7fff) - offset;
         let start_ptr = unsafe { (page as *const _ as *const u8).add(offset as _) };
         let bytes = unsafe { from_raw_parts(start_ptr, length as _) };
-        println!("entry at offset {}: {}", offset, unsafe { str::from_utf8_unchecked(bytes) });
+        println!("entry at offset {}: {}", offset, String::from_utf8_lossy(bytes));
     }
 }
