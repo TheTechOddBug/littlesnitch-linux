@@ -39,6 +39,10 @@ function ruleFileName(path) {
   return parts[parts.length - 1];
 }
 
+function escapeHtml(str) {
+  return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 function ruleDirectionArrow(direction) {
   let suffix;
   switch (direction) {
@@ -284,7 +288,7 @@ function setHighlightedText(element, text) {
   const rawText = text || '';
   const query = normalizedRulesSearchQuery();
   if (!query || query.length === 0) {
-    element.innerHTML = rawText;
+    element.textContent = rawText;
     return;
   }
 
@@ -292,7 +296,7 @@ function setHighlightedText(element, text) {
   let searchStart = 0;
   let matchIndex = haystack.indexOf(query, searchStart);
   if (matchIndex < 0) {
-    element.innerHTML = rawText;
+    element.textContent = rawText;
     return;
   }
 
@@ -303,7 +307,7 @@ function setHighlightedText(element, text) {
     }
     const mark = document.createElement('mark');
     mark.className = 'rules-search-highlight';
-    mark.innerHTML = rawText.slice(matchIndex, matchIndex + query.length);
+    mark.textContent = rawText.slice(matchIndex, matchIndex + query.length);
     fragment.appendChild(mark);
     searchStart = matchIndex + query.length;
     matchIndex = haystack.indexOf(query, searchStart);
@@ -417,10 +421,10 @@ function ruleRemoteInspectorLabel(remotePattern) {
 function ruleHeadline(rule) {
   const action = `${ruleActionSVG(rule.action)} <span>${ruleActionLabel(rule.action)}</span>`;
   const executable = rule.primaryExecutable
-    ? (rule.viaExecutable ? `${rule.primaryExecutable} via ${rule.viaExecutable}` : rule.primaryExecutable)
-    : (rule.viaExecutable ? t('any-process-via', { via: rule.viaExecutable }) : t('any-process'));
+    ? (rule.viaExecutable ? `${escapeHtml(rule.primaryExecutable)} via ${escapeHtml(rule.viaExecutable)}` : escapeHtml(rule.primaryExecutable))
+    : (rule.viaExecutable ? t('any-process-via', { via: escapeHtml(rule.viaExecutable) }) : t('any-process'));
   const direction = ruleDirectionArrow(rule.direction);
-  const remote = ruleRemoteInspectorLabel(rule.remotePattern);
+  const remote = escapeHtml(ruleRemoteInspectorLabel(rule.remotePattern));
   return `${action} <span>${executable}</span> ${direction} <span>${remote}</span>`;
 }
 
