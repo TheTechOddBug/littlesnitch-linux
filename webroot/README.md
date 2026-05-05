@@ -84,7 +84,10 @@ This folder contains a plain-JS single-page UI with three sections:
 3. `app.js` dispatches each operation to section handlers (`connections.js`, `blocklists.js`, `rules.js`).
 4. Section modules update DOM incrementally.
 5. When the WebSocket closes, `app.js` shows an offline indicator in the tabs header and retries
-   the connection every 10 seconds until it succeeds.
+   the connection every 10 seconds until it succeeds. If the close frame carries reason `"logout"`,
+   `app.js` skips the reconnect loop and calls `window.location.reload()` instead, so the browser
+   issues a fresh `GET /` that triggers the backend's force-reauth 401 and the native Basic Auth
+   dialog.
 
 ## Shared Browser State
 
@@ -126,6 +129,7 @@ Sent by `app.js`:
 - `setSection`
 - `setFilterDisabled` — sent when the user toggles the header filter switch; payload: `{ filterDisabled: bool }`
 - `undo` — sent when the user clicks the bubble or a dropdown row; payload: `{ itemId }`
+- `logout` — sent when the user clicks the logout menu item; ends the authenticated session
 - `setSearch` (Connections, Blocklists; Rules search is local in `rules.js`)
 - `setConnectionsSort` — also sent by `connections.js` header click handlers
 - `setConnectionsFilters`
@@ -190,6 +194,7 @@ Handled by `app.js` router:
 - `updateTrafficData`
 - `setAboutInfo` — populates the About dialog (version, commits, copyright, website URL); handled in `app.js` by `handleSetAboutInfo()`
 - `setUndoStack` — updates the undo stack shown in the header; handled in `app.js` by `handleSetUndoStack()`
+- `setLoginData` — sets the currently logged-in user; field: `username` (string or null). Handled in `app.js` by `handleSetLoginData()`, which shows/hides the header logout control (`[data-role="logout-control"]`) and updates the menu item label via `refreshLogoutLabel()` (uses `btn-logout` localization key with `{$username}`)
 - `localizationTable` — sends a key→string map that overrides English defaults; handled in `app.js`
   by `setLocalizationTable()` (`localization.js`), which merges the table, then calls
   `applyLocalizationToDOM()`, `window.applyConnectionsSort()`, and `window.rebuildTrafficPlot()`

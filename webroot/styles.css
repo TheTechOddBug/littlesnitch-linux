@@ -273,6 +273,18 @@ input[type="search"]::-webkit-search-results-decoration {
   font-weight: 500;
 }
 
+.logout-placeholder {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface);
+  color: var(--text-muted);
+  font-family: var(--font-stack);
+  font-size: var(--font-default);
+}
+
 /* ── Filter enabled switch ──────────────────────────────── */
 .filter-switch {
   display: flex;

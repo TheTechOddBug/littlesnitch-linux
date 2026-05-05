@@ -17,6 +17,7 @@
     connectionsSearchTerm: "",
     selectedConnectionRowId: null,
     selectedBlocklistId: USER_BLOCKLIST_ID,
+    loginUsername: null,
   };
 
   let ws = null;
@@ -74,8 +75,17 @@
       }
     });
 
-    socket.addEventListener("close", () => {
-      console.log("WebSocket closed — will retry in 10 s");
+    socket.addEventListener("close", (event) => {
+      if (event.reason === "logout") {
+        console.log("WebSocket closed by logout, reloading page");
+        const placeholder = document.createElement("div");
+        placeholder.className = "logout-placeholder";
+        placeholder.textContent = t("signed-out");
+        document.body.replaceChildren(placeholder);
+        window.location.reload();
+        return;
+      }
+      console.log("WebSocket closed, will retry in 10 s");
       setOfflineIndicator(true);
       scheduleReconnect();
     });
@@ -189,10 +199,14 @@
         case "setUndoStack":
           handleSetUndoStack(msg);
           break;
+        case "setLoginData":
+          handleSetLoginData(msg);
+          break;
         case "localizationTable":
           setLocalizationTable(msg.table);
           window.applyConnectionsSort?.();
           window.rebuildTrafficPlot?.();
+          refreshLogoutLabel();
           break;
         case "globalSettings":
           handleSetGlobalSettings(msg);
@@ -941,6 +955,46 @@
     });
   }
 
+  function refreshLogoutLabel() {
+    const item = document.querySelector('[data-role="logout-item"]');
+    if (item && state.loginUsername) {
+      item.textContent = t('btn-logout', { username: state.loginUsername });
+    }
+  }
+
+  function handleSetLoginData(msg) {
+    state.loginUsername = msg.username || null;
+    const control = document.querySelector('[data-role="logout-control"]');
+    if (control instanceof HTMLElement) {
+      control.hidden = !state.loginUsername;
+    }
+    refreshLogoutLabel();
+  }
+
+  function setupLogoutMenu() {
+    const btn = document.querySelector('[data-role="logout-toggle"]');
+    const popup = document.querySelector('[data-role="logout-popup"]');
+    const item = document.querySelector('[data-role="logout-item"]');
+    if (!btn || !popup || !item) return;
+
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const shouldOpen = popup.hidden;
+      closeAllMenus();
+      popup.hidden = !shouldOpen;
+      btn.setAttribute('aria-expanded', String(shouldOpen));
+    });
+
+    popup.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!(e.target instanceof Element)) return;
+      if (!e.target.closest('[data-role="logout-item"]')) return;
+      popup.hidden = true;
+      btn.setAttribute('aria-expanded', 'false');
+      sendAction('logout');
+    });
+  }
+
   function setupAboutDialog() {
     const dialog = document.getElementById("about-dialog");
     if (!(dialog instanceof HTMLDialogElement)) {
@@ -1130,6 +1184,7 @@
     setupAboutDialog();
     setupUndoWidget();
     setupFilterSwitch();
+    setupLogoutMenu();
   }
 
   init();

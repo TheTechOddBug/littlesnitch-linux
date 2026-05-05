@@ -231,6 +231,11 @@ const _strings = {
   'about-main-commit': 'Main commit',
   'about-ebpf-commit': 'eBPF commit',
 
+  // --- Logout menu ---
+  'logout-btn-label':  'Logout',
+  'btn-logout':        'Logout {$username}',
+  'signed-out':        'Signed out.',
+
   // --- Pane titles ---
   'connection-details-header': 'Connection Details',
   'rule-details-header':       'Rule Details',
