@@ -94,8 +94,8 @@ impl PortTableEntry {
                         type_and_len,
                         protocol_and_direction,
                     });
-                    len -= x;
-                    start += x;
+                    len -= x * f;
+                    start += x * f;
                 }
             }
         }
@@ -111,8 +111,8 @@ impl PortTableEntry {
         assert!(port1 < 2048 && port2 < 2048);
         Self {
             rule_id,
-            port: port1 | (port2 << 11),
-            type_and_len: 0xc0 | (port2 >> 5) as u8,
+            port: port1 | ((port2 << 5) & 0b1111_1000_0000_0000),
+            type_and_len: 0xc0 | (port2 & 0b0011_1111) as u8,
             protocol_and_direction,
         }
     }
@@ -149,8 +149,8 @@ impl PortTableEntry {
     fn range_length(&self) -> u16 {
         match self.type_and_len >> 6 {
             0 => self.type_and_len as _,
-            1 => (((self.type_and_len & 0x3f) + 1) as u16) << 6,
-            2 => (((self.type_and_len & 0xf) + 1) as u16) << 12,
+            1 => ((self.type_and_len & 0x3f) as u16) << 6,
+            2 => ((self.type_and_len & 0xf) as u16) << 12,
             _ => 0, // invalid
         }
     }
@@ -173,7 +173,7 @@ impl PortTableEntry {
             AnyPort => true,
             PortAndLength => {
                 let length = self.range_length();
-                port >= self.port && port <= (self.port + length)
+                port >= self.port && port < (self.port + length)
             }
             TwoPorts => {
                 let (a, b) = self.two_ports();
