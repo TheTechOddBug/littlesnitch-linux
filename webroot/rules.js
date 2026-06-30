@@ -1141,7 +1141,10 @@ function renderRuleTable(ruleList) {
     const directionCell = document.createElement('td');
     const directionInner = document.createElement('div');
     directionInner.className = 'rule-cell-inner';
-    setHighlightedText(directionInner, `${ruleDirectionArrow(rule.direction)} ${ruleDirectionLabel(rule.direction)}`);
+    directionInner.innerHTML = ruleDirectionArrow(rule.direction) + ' ';
+    const directionLabel = document.createElement('span');
+    setHighlightedText(directionLabel, ruleDirectionLabel(rule.direction));
+    directionInner.appendChild(directionLabel);
     directionCell.setAttribute('data-role', 'rule-direction');
     directionCell.title = ruleDirectionLabel(rule.direction);
     directionCell.appendChild(directionInner);
